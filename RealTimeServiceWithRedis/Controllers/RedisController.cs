@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RealTimeServiceWithRedis.Models;
+using RealTimeServiceWithRedis.Services;
 using StackExchange.Redis;
 
 namespace RealTimeServiceWithRedis.Controllers
@@ -9,20 +10,16 @@ namespace RealTimeServiceWithRedis.Controllers
     [ApiController]
     public class RedisController : ControllerBase
     {
-        private readonly IConnectionMultiplexer _connectionMultiplexer;
-        private readonly IDatabase _redisDatabase;
+        private readonly IMessageService _messageService;
 
-        public RedisController(IConnectionMultiplexer connectionMultiplexer)
+        public RedisController(IMessageService messageService)
         {
-            _connectionMultiplexer = connectionMultiplexer;
-            _redisDatabase = _connectionMultiplexer.GetDatabase();
+            _messageService = messageService;
         }
-
         [HttpPost]
-        public async Task<IActionResult> SendMessageToChannel(MessageModel message)
+        public async Task<IActionResult> SendMessage(MessageModel message)
         {
-            // Publish message to specified channel
-            await _redisDatabase.PublishAsync(message.ReciverId, (RedisValue)message.Body);
+            await _messageService.PublishMessageAsync(message);
             return Ok();
         }
     }
